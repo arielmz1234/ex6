@@ -7,8 +7,7 @@
 #include <string.h>
 
 
-typedef enum
-{
+typedef enum {
     GRASS,
     FIRE,
     WATER,
@@ -26,14 +25,12 @@ typedef enum
     ICE
 } PokemonType;
 
-typedef enum
-{
+typedef enum {
     CANNOT_EVOLVE,
     CAN_EVOLVE
 } EvolutionStatus;
 
-typedef struct PokemonData
-{
+typedef struct PokemonData {
     int id;
     char *name;
     PokemonType TYPE;
@@ -43,28 +40,43 @@ typedef struct PokemonData
 } PokemonData;
 
 // Binary Tree Node (for Pokédex)
-typedef struct PokemonNode
-{
+typedef struct PokemonNode {
     PokemonData *data;
     struct PokemonNode *left;
     struct PokemonNode *right;
 } PokemonNode;
 
 // Linked List Node (for Owners)
-typedef struct OwnerNode
-{
-    char *ownerName;          // Owner's name
+typedef struct OwnerNode {
+    char *ownerName; // Owner's name
     PokemonNode *pokedexRoot; // Pointer to the root of the owner's Pokédex
-    struct OwnerNode *next;   // Next owner in the linked list
-    struct OwnerNode *prev;   // Previous owner in the linked list
+    struct OwnerNode *next; // Next owner in the linked list
+    struct OwnerNode *prev; // Previous owner in the linked list
 } OwnerNode;
+
+typedef struct node {
+    PokemonNode *data;
+    struct node *next;
+} node;
+
+typedef struct queue {
+    node *front, *rear;
+} queue;
 
 // Global head pointer for the linked list of owners
 OwnerNode *ownerHead = NULL;
-
 /* ------------------------------------------------------------
    1) Safe Input + Utility
    ------------------------------------------------------------ */
+node *createNode(PokemonNode *data);
+
+queue *createQueue();
+
+int isEmpty(queue *myq);
+
+void enQueue(queue *myq, PokemonNode *data);
+
+PokemonNode *deQueue(queue *myq);
 
 /**
  * @brief Remove leading/trailing whitespace (including '\r').
@@ -72,6 +84,8 @@ OwnerNode *ownerHead = NULL;
  * Why we made it: We must handle CR/LF or random spaces in user input.
  */
 void trimWhitespace(char *str);
+
+int isIDExist(PokemonNode *root, int id);
 
 /**
  * @brief C99-friendly strdup replacement.
@@ -114,7 +128,7 @@ const char *getTypeName(PokemonType type);
  * @return newly allocated PokemonNode*
  * Why we made it: We need a standard way to allocate BST nodes.
  */
-PokemonNode *createPokemonNode(const PokemonData *data);
+PokemonNode *createPokemonNode(PokemonData *data);
 
 /**
  * @brief Create an OwnerNode for the circular owners list.
@@ -166,7 +180,9 @@ PokemonNode *insertPokemonNode(PokemonNode *root, PokemonNode *newNode);
  * @return pointer to found node or NULL
  * Why we made it: BFS ensures we find nodes even in an unbalanced tree.
  */
-PokemonNode *searchPokemonBFS(PokemonNode *root, int id);
+PokemonNode *searchPokemonDFS(PokemonNode *root, int id);
+// find the min id node from the root
+PokemonNode* findMinNode(PokemonNode* root);
 
 /**
  * @brief Remove node from BST by ID if found (BST removal logic).
@@ -175,7 +191,7 @@ PokemonNode *searchPokemonBFS(PokemonNode *root, int id);
  * @return updated BST root
  * Why we made it: We handle special cases of a BST remove (0,1,2 children).
  */
-PokemonNode *removeNodeBST(PokemonNode *root, int id);
+PokemonNode *removeNodeById(PokemonNode *root, int id);
 
 /**
  * @brief Combine BFS search + BST removal to remove Pokemon by ID.
@@ -238,12 +254,13 @@ void printPokemonNode(PokemonNode *node);
    5) Display Methods (BFS, Pre, In, Post, Alphabetical)
    ------------------------------------------------------------ */
 
-typedef struct
-{
+typedef struct {
     PokemonNode **nodes;
     int size;
     int capacity;
 } NodeArray;
+
+int getCapacity(PokemonNode *root);
 
 /**
  * @brief Initialize a NodeArray with given capacity.
@@ -267,7 +284,7 @@ void addNode(NodeArray *na, PokemonNode *node);
  * @param na pointer to NodeArray
  * Why we made it: We gather everything for qsort.
  */
-void collectAll(PokemonNode *root, NodeArray *na);
+void collectAll(NodeArray *na, PokemonNode *root);
 
 /**
  * @brief Compare function for qsort (alphabetical by node->data->name).
@@ -366,6 +383,8 @@ void displayMenu(OwnerNode *owner);
  */
 void sortOwners(void);
 
+int getOwnerCount (OwnerNode *owner);
+
 /**
  * @brief Helper to swap name & pokedexRoot in two OwnerNode.
  * @param a pointer to first owner
@@ -398,7 +417,7 @@ void removeOwnerFromCircularList(OwnerNode *target);
  * @return pointer to the matching OwnerNode or NULL
  * Why we made it: We often need to locate an owner quickly.
  */
-OwnerNode *findOwnerByName(const char *name);
+OwnerNode *findOwnerByName(char *name);
 
 /* ------------------------------------------------------------
    10) Owner Menus
@@ -422,11 +441,15 @@ void openPokedexMenu(void);
  */
 void deletePokedex(void);
 
+OwnerNode *getOwnerByID(int id);
+
 /**
  * @brief Merge the second owner's Pokedex into the first, then remove the second owner.
  * Why we made it: BFS copy demonstration plus removing an owner.
  */
 void mergePokedexMenu(void);
+
+void mergePokedexBFS(OwnerNode *firstowner, OwnerNode *secondOwner);
 
 /* ------------------------------------------------------------
    11) Printing Owners in a Circle
@@ -456,10 +479,12 @@ void freeAllOwners(void);
  * @brief The main driver loop for the program (new pokedex, merge, fight, etc.).
  * Why we made it: Our top-level UI that keeps the user engaged until they exit.
  */
+void printOwnersList(void);
+
 void mainMenu(void);
 
 // Array of Pokemon data
-static const PokemonData pokedex[] = {
+static PokemonData pokedex[] = {
     {1, "Bulbasaur", GRASS, 45, 49, CAN_EVOLVE},
     {2, "Ivysaur", GRASS, 60, 62, CAN_EVOLVE},
     {3, "Venusaur", GRASS, 80, 82, CANNOT_EVOLVE},
@@ -610,6 +635,7 @@ static const PokemonData pokedex[] = {
     {148, "Dragonair", DRAGON, 61, 84, CAN_EVOLVE},
     {149, "Dragonite", DRAGON, 91, 134, CANNOT_EVOLVE},
     {150, "Mewtwo", PSYCHIC, 106, 110, CANNOT_EVOLVE},
-    {151, "Mew", PSYCHIC, 100, 100, CANNOT_EVOLVE}};
+    {151, "Mew", PSYCHIC, 100, 100, CANNOT_EVOLVE}
+};
 
 #endif // EX6_H
