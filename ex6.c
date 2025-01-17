@@ -697,6 +697,7 @@ OwnerNode *getOwnerByID(int id) {
     }
     return node;
 }
+
 // wrapper func that calls removeOwnerFromCircularList and prints things
 void deletePokedex() {
     if (ownerHead == NULL) {
@@ -737,14 +738,14 @@ void removeOwnerFromCircularList(OwnerNode *target) {
 // --------------------------------------------------------------
 
 // Merging pokedexes of 2 owners using a bfs logic with a queue
-void mergePokedexBFS(OwnerNode *firstowner, OwnerNode *secondOwner) {
+void mergePokedexBFS(OwnerNode *firstOwner, OwnerNode *secondOwner) {
     queue *myq = createQueue();
     enQueue(myq, secondOwner->pokedexRoot);
     while (!isEmpty(myq)) {
         PokemonNode *current = deQueue(myq);
         // creating a temp so that when we free the second pokedex we won't lose all the pointers
         PokemonNode *temp = createPokemonNode(current->data);
-        insertPokemonNode(firstowner->pokedexRoot, temp);
+        insertPokemonNode(firstOwner->pokedexRoot, temp);
         if (current->left != NULL) {
             enQueue(myq, current->left);
         }
@@ -776,6 +777,14 @@ void mergePokedexMenu() {
     // Create the owners by comparing them to the existing owners and merge them, after that freeing the names
     OwnerNode *firstOwner = findOwnerByName(firstname);
     OwnerNode *secondOwner = findOwnerByName(secondname);
+    /********************************************************************************************************
+    check to see if both pokedex are empty because the run file does that but the instructions don't tell us
+    good job!!
+    *********************************************************************************************************/
+    if (firstOwner->pokedexRoot == NULL && secondOwner->pokedexRoot == NULL) {
+        printf("Both Pokedexes empty. Nothing to merge.\n");
+        return;
+    }
     printf("Merging %s and %s...\n", firstname, secondname);
     mergePokedexBFS(firstOwner, secondOwner);
     removeOwnerFromCircularList(secondOwner);

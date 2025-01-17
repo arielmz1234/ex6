@@ -449,7 +449,7 @@ OwnerNode *getOwnerByID(int id);
  */
 void mergePokedexMenu(void);
 
-void mergePokedexBFS(OwnerNode *firstowner, OwnerNode *secondOwner);
+void mergePokedexBFS(OwnerNode *firstOwner, OwnerNode *secondOwner);
 
 /* ------------------------------------------------------------
    11) Printing Owners in a Circle
