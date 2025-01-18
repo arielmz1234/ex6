@@ -10,16 +10,8 @@ Assignment: ex6
 #include <string.h>
 
 # define INT_BUFFER 128
-
-// ================================================
-// Basic struct definitions from ex6.h assumed:
-//   PokemonData { int id; char *name; PokemonType TYPE; int hp; int attack; EvolutionStatus CAN_EVOLVE; }
-//   PokemonNode { PokemonData* data; PokemonNode* left, *right; }
-//   OwnerNode   { char* ownerName; PokemonNode* pokedexRoot; OwnerNode *next, *prev; }
-//   OwnerNode* ownerHead;
-//   const PokemonData pokedex[];
-// ================================================
-
+# define ATTACK_MULTIPLIER 1.5
+# define HP_MULTIPLIER 1.2
 // --------------------------------------------------------------
 // 1) Safe integer reading
 // --------------------------------------------------------------
@@ -555,6 +547,7 @@ PokemonNode *removeNodeById(PokemonNode *root, int id) {
     if (!root) {
         return NULL;
     }
+    // traverse the tree to find the node with the given id
     if (root->data->id > id) {
         root->left = removeNodeById(root->left, id);
     } else if (root->data->id < id) {
@@ -564,7 +557,6 @@ PokemonNode *removeNodeById(PokemonNode *root, int id) {
         if (root->left == NULL) {
             PokemonNode *temp = root->right;
             freePokemonNode(root);
-
             return temp;
             // No bigger children, switch with the left one
         } else if (root->right == NULL) {
@@ -617,8 +609,8 @@ void pokemonFight(OwnerNode *owner) {
     int hp1 = pokedex[id1 - 1].hp;
     int attack2 = pokedex[id2 - 1].attack;
     int hp2 = pokedex[id2 - 1].hp;
-    float score1 = attack1 * 1.5 + hp1 * 1.2;
-    float score2 = attack2 * 1.5 + hp2 * 1.2;
+    float score1 = attack1 * ATTACK_MULTIPLIER + hp1 * HP_MULTIPLIER;
+    float score2 = attack2 * ATTACK_MULTIPLIER + hp2 * HP_MULTIPLIER;
     printf("Pokemon 1: %s (Score = %.2f)\n", pokedex[id1 - 1].name, score1);
     printf("Pokemon 2: %s (Score = %.2f)\n", pokedex[id2 - 1].name, score2);
     if (score1 > score2) {
@@ -764,19 +756,19 @@ void mergePokedexMenu() {
     }
     printf("\n=== Merge Pokedexes ===\n");
     printf("Enter name of first owner: ");
-    char *firstname = getDynamicInput();
+    char *firstName = getDynamicInput();
     printf("Enter name of second owner: ");
-    char *secondname = getDynamicInput();
+    char *secondName = getDynamicInput();
     // see if the owners exist by name, if so we return from the func and free the names
-    if (!findOwnerByName(firstname) || !findOwnerByName(secondname)) {
+    if (!findOwnerByName(firstName) || !findOwnerByName(secondName)) {
         printf("One or both owners not found.\n");
-        free(firstname);
-        free(secondname);
+        free(firstName);
+        free(secondName);
         return;
     }
     // Create the owners by comparing them to the existing owners and merge them, after that freeing the names
-    OwnerNode *firstOwner = findOwnerByName(firstname);
-    OwnerNode *secondOwner = findOwnerByName(secondname);
+    OwnerNode *firstOwner = findOwnerByName(firstName);
+    OwnerNode *secondOwner = findOwnerByName(secondName);
     /********************************************************************************************************
     check to see if both pokedex are empty because the run file does that but the instructions don't tell us
     good job!!
@@ -785,13 +777,13 @@ void mergePokedexMenu() {
         printf("Both Pokedexes empty. Nothing to merge.\n");
         return;
     }
-    printf("Merging %s and %s...\n", firstname, secondname);
+    printf("Merging %s and %s...\n", firstName, secondName);
     mergePokedexBFS(firstOwner, secondOwner);
     removeOwnerFromCircularList(secondOwner);
     printf("Merge completed.\n");
-    printf("Owner '%s' has been removed after merging.\n", secondname);
-    free(firstname);
-    free(secondname);
+    printf("Owner '%s' has been removed after merging.\n", secondName);
+    free(firstName);
+    free(secondName);
 }
 
 // --------------------------------------------------------------
